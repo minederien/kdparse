@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ''' Demarche:
 1. Get file name and type
 2. File object - vet the file
@@ -7,27 +8,31 @@
     - DriverTrace packet timing
     - Device history -
     - Server restarts 
+import re
+
+textfile = open(filename, 'r')
+filetext = textfile.read()
+textfile.close()
+matches = re.findall("(<(\d{4,5})>)?", filetext)
 '''
-from LogFile import *
-from RawData import *
-from CSV import *
-import time
-ticks1 = time.time()
-#f = LogFile("..\logs\CaseMI_modbus_issue_10lines_quotes.csv","CSV")
-f = LogFile("home/thomasr/Documents/citectlogs/kdump1.dat","CSV")
-#f.__dict__
-# now with file object, pass in Regex or let object do that?
-if f.fh != None :
-    oRawCSV = RawData(f,"CSV")
-    iT = oRawCSV.lCnt[0]
-    iM = oRawCSV.lCnt[1]
-    print('matched {} lines out of {} ' .format(iM,iT))
-    print(oRawCSV.lRaw[:2])
-    oResCSV = CSV(oRawCSV.lRaw,'freq')
-    iT = oResCSV.lCnt[0]
-    iM = oResCSV.lCnt[1]
-    print('matched {} lines out of {} ' .format(iM,iT))
-print('this run took {} ms' .format((ticks2-time.time())*1000))
-          
-else:
-    print("Raté")          
+import re 
+def lookupios(iosname):
+    try:
+        fh=open(iosname,  'r', errors='ignore')
+        print('fh = ', str(fh))
+        kdtext=fh.read()
+        fh.close 
+#        rgx = re.compile(r'^\s+-+Unit Statistics.\nUnit:\s+(?P<UnitName>\w+)(?:[^:]+\:\s+)(?P<IOServer>\w+)\s.*?Name:\s+(?P<PortName>\w+)\s')
+#        rgxp = r'^\s+-+Unit Statistics.\nUnit:\s+(?P<UnitName>\w+)(?:[^:]+\:\s+)(?P<IOServer>\w+)\s.*?Name:\s+(?P<PortName>\w+)\s'
+        rgxp = r"^\s+-+Unit Statistics.\nUnit:\s+(?P<UnitName>\w+)"
+        matches = re.findall(rgxp, kdtext)
+        print('found this many matches ')
+    except IOError as e:
+        errno, strerror = e.args
+        print("I/O error({0}): {1}".format(errno,strerror))
+        print('kann Datei nicht öffnen:', str(fh))
+def main():
+    iosname="logs/kdump1.dat"
+    lookupios(iosname)
+main() 
+    
